@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SC Court Monitor Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .card-transition {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-transition:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+        }
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .pulse-ring {
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+            animation: pulse-blue 2s infinite;
+        }
+        @keyframes pulse-blue {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- Top Header -->
+    <header class="bg-slate-900 text-white h-16 flex-none shadow-lg z-20">
+        <div class="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 p-2 rounded-lg">
+                    <i class="ph-bold ph-buildings text-xl"></i>
+                </div>
+                <h1 class="font-bold text-xl tracking-tight">SC Jurisdiction Monitor</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="hidden md:flex items-center gap-2 text-sm text-slate-400">
+                    <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                    Systems Operational
+                </div>
+                <button class="p-2 hover:bg-slate-800 rounded-full transition-colors">
+                    <i class="ph ph-gear text-xl"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard Area -->
+    <div class="flex-1 flex overflow-hidden">
+        
+        <!-- Sidebar Controls -->
+        <aside class="w-80 bg-white border-r border-gray-200 flex flex-col shadow-xl z-10">
+            <div class="p-6 border-b border-gray-100">
+                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Target Entity</h2>
+                <form onsubmit="runDashboardSearch(event)">
+                    <div class="relative">
+                        <i class="ph ph-magnifying-glass absolute left-3 top-3.5 text-gray-400 text-lg"></i>
+                        <input type="text" id="searchInput" 
+                            class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all font-medium text-gray-800 placeholder-gray-400" 
+                            placeholder="Enter Name or Business...">
+                    </div>
+                    <button type="submit" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-blue-200 transition-all transform active:scale-95 flex items-center justify-center gap-2">
+                        <span>Run Scan</span>
+                        <i class="ph-bold ph-caret-right"></i>
+                    </button>
+                </form>
+            </div>
+
+            <div class="p-6 flex-1 overflow-y-auto">
+                <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Active Monitors</h2>
+                <div class="space-y-3">
+                    <!-- County Toggles -->
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                        <div class="flex items-center gap-3">
+                            <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                            <span class="text-sm font-medium text-gray-700">Clarendon</span>
+                        </div>
+                        <i class="ph-fill ph-toggle-right text-2xl text-blue-600 cursor-pointer"></i>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                        <div class="flex items-center gap-3">
+                            <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                            <span class="text-sm font-medium text-gray-700">Lee</span>
+                        </div>
+                        <i class="ph-fill ph-toggle-right text-2xl text-blue-600 cursor-pointer"></i>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                        <div class="flex items-center gap-3">
+                            <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                            <span class="text-sm font-medium text-gray-700">Sumter</span>
+                        </div>
+                        <i class="ph-fill ph-toggle-right text-2xl text-blue-600 cursor-pointer"></i>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                        <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                        <span class="text-sm font-medium text-gray-700">Williamsburg</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-4 bg-gray-50 border-t border-gray-200 text-center">
+                <p class="text-xs text-gray-400">Simulating connection to sccourts.org</p>
+            </div>
+        </aside>
+
+        <!-- Dashboard Content -->
+        <main class="flex-1 bg-slate-50 overflow-y-auto p-8">
+            
+            <!-- Stats Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+                <!-- Card: Clarendon -->
+                <div id="card-clarendon" onclick="showDetails('Clarendon')" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 card-transition cursor-pointer relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <i class="ph-fill ph-courthouse text-6xl text-gray-400"></i>
+                    </div>
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-gray-500 font-medium text-sm uppercase">Clarendon</h3>
+                            <div class="text-2xl font-bold text-gray-900 mt-1 status-text">Ready</div>
+                        </div>
+                        <div class="status-indicator w-3 h-3 rounded-full bg-gray-300"></div>
+                    </div>
+                    <div class="text-xs text-gray-400 status-detail">Waiting for scan...</div>
+                    <div class="h-1 w-full bg-gray-100 mt-4 rounded-full overflow-hidden">
+                        <div class="h-full bg-blue-500 w-0 transition-all duration-1000 progress-bar"></div>
+                    </div>
+                </div>
+
+                <!-- Card: Lee -->
+                <div id="card-lee" onclick="showDetails('Lee')" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 card-transition cursor-pointer relative overflow-hidden group">
+                     <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <i class="ph-fill ph-courthouse text-6xl text-gray-400"></i>
+                    </div>
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-gray-500 font-medium text-sm uppercase">Lee</h3>
+                            <div class="text-2xl font-bold text-gray-900 mt-1 status-text">Ready</div>
+                        </div>
+                        <div class="status-indicator w-3 h-3 rounded-full bg-gray-300"></div>
+                    </div>
+                    <div class="text-xs text-gray-400 status-detail">Waiting for scan...</div>
+                    <div class="h-1 w-full bg-gray-100 mt-4 rounded-full overflow-hidden">
+                        <div class="h-full bg-blue-500 w-0 transition-all duration-1000 progress-bar"></div>
+                    </div>
+                </div>
+
+                <!-- Card: Sumter -->
+                <div id="card-sumter" onclick="showDetails('Sumter')" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 card-transition cursor-pointer relative overflow-hidden group">
+                     <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <i class="ph-fill ph-courthouse text-6xl text-gray-400"></i>
+                    </div>
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-gray-500 font-medium text-sm uppercase">Sumter</h3>
+                            <div class="text-2xl font-bold text-gray-900 mt-1 status-text">Ready</div>
+                        </div>
+                        <div class="status-indicator w-3 h-3 rounded-full bg-gray-300"></div>
+                    </div>
+                    <div class="text-xs text-gray-400 status-detail">Waiting for scan...</div>
+                    <div class="h-1 w-full bg-gray-100 mt-4 rounded-full overflow-hidden">
+                        <div class="h-full bg-blue-500 w-0 transition-all duration-1000 progress-bar"></div>
+                    </div>
+                </div>
+
+                <!-- Card: Williamsburg -->
+                <div id="card-williamsburg" onclick="showDetails('Williamsburg')" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 card-transition cursor-pointer relative overflow-hidden group">
+                     <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <i class="ph-fill ph-courthouse text-6xl text-gray-400"></i>
+                    </div>
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-gray-500 font-medium text-sm uppercase">Williamsburg</h3>
+                            <div class="text-2xl font-bold text-gray-900 mt-1 status-text">Ready</div>
+                        </div>
+                        <div class="status-indicator w-3 h-3 rounded-full bg-gray-300"></div>
+                    </div>
+                    <div class="text-xs text-gray-400 status-detail">Waiting for scan...</div>
+                    <div class="h-1 w-full bg-gray-100 mt-4 rounded-full overflow-hidden">
+                        <div class="h-full bg-blue-500 w-0 transition-all duration-1000 progress-bar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail View Area -->
+            <div id="detail-section" class="bg-white rounded-2xl shadow-sm border border-gray-200 min-h-[400px] hidden flex-col">
+                <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-2xl">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900" id="detail-title">Jurisdiction Details</h3>
+                        <p class="text-sm text-gray-500">Case breakdown and status codes</p>
+                    </div>
+                    <div class="flex gap-2">
+                         <button onclick="closeDetails()" class="text-gray-400 hover:text-gray-600 p-2">
+                            <i class="ph ph-x text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-0 overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-50 text-xs uppercase font-semibold text-gray-500">
+                            <tr>
+                                <th class="px-6 py-4 border-b">Case Number</th>
+                                <th class="px-6 py-4 border-b">Filing Date</th>
+                                <th class="px-6 py-4 border-b">Party</th>
+                                <th class="px-6 py-4 border-b">Type</th>
+                                <th class="px-6 py-4 border-b">Status</th>
+                                <th class="px-6 py-4 border-b text-right">Source</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detail-tbody" class="text-sm text-gray-600 divide-y divide-gray-100">
+                            <!-- Rows go here -->
+                        </tbody>
+                    </table>
+                    
+                    <!-- Empty State for Details -->
+                    <div id="detail-empty" class="hidden flex flex-col items-center justify-center py-12">
+                        <div class="bg-gray-100 p-4 rounded-full mb-3">
+                             <i class="ph ph-check-circle text-3xl text-gray-400"></i>
+                        </div>
+                        <p class="text-gray-500 font-medium">No records found for this jurisdiction.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Welcome Placeholder -->
+            <div id="welcome-placeholder" class="flex flex-col items-center justify-center h-[400px] text-center">
+                <div class="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mb-6 pulse-ring">
+                    <i class="ph-fill ph-radar text-4xl text-blue-500"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">Ready to Monitor</h2>
+                <p class="text-gray-500 max-w-md">Enter a party name in the sidebar to begin a simultaneous scan across all 4 configured jurisdictions.</p>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // Mock Data Store
+        let currentResults = {
+            'Clarendon': [],
+            'Lee': [],
+            'Sumter': [],
+            'Williamsburg': []
+        };
+
+        const CASE_TYPES = ['Civil - Contract', 'Criminal - General', 'Domestic Relations', 'Civil - Tort', 'Traffic'];
+        const STATUSES = ['Pending', 'Disposed', 'Dismissed', 'Active', 'Judgment Satisfied'];
+
+        function generateMockDataForCounty(county, query) {
+            const results = [];
+            // Randomize if we find results (70% chance)
+            if (Math.random() > 0.3) {
+                const count = Math.floor(Math.random() * 5) + 1;
+                for(let i=0; i<count; i++) {
+                    const year = 2020 + Math.floor(Math.random() * 6);
+                    results.push({
+                        caseNumber: `${year}-CP-${county.substring(0,2).toUpperCase()}-${Math.floor(Math.random()*9000)+1000}`,
+                        date: `${Math.floor(Math.random()*12)+1}/${Math.floor(Math.random()*28)+1}/${year}`,
+                        party: query.toUpperCase(),
+                        type: CASE_TYPES[Math.floor(Math.random() * CASE_TYPES.length)],
+                        status: STATUSES[Math.floor(Math.random() * STATUSES.length)],
+                        url: `https://publicindex.sccourts.org/${county}/publicindex/`
+                    });
+                }
+            }
+            return results;
+        }
+
+        function runDashboardSearch(e) {
+            e.preventDefault();
+            const query = document.getElementById('searchInput').value;
+            if(!query) return;
+
+            // --- IMPORTANT: RENDER CONNECTION LOGIC GOES HERE ---
+            // This is currently using mock data.
+            // We will replace this with a fetch call to your live Render URL later.
+            // ----------------------------------------------------
+
+            // Reset UI
+            document.getElementById('welcome-placeholder').classList.add('hidden');
+            document.getElementById('detail-section').classList.add('hidden');
+            
+            // Reset Cards
+            const counties = ['Clarendon', 'Lee', 'Sumter', 'Williamsburg'];
+            
+            counties.forEach(county => {
+                const cardId = `card-${county.toLowerCase()}`;
+                const card = document.getElementById(cardId);
+                
+                // Set Loading State
+                card.querySelector('.status-text').innerHTML = `<div class="flex items-center gap-2 text-blue-600 text-lg"><i class="ph ph-spinner spinner"></i> Scanning</div>`;
+                card.querySelector('.status-detail').innerText = "Querying database...";
+                card.querySelector('.status-indicator').className = "status-indicator w-3 h-3 rounded-full bg-blue-500 animate-pulse";
+                card.querySelector('.progress-bar').style.width = "0%";
+                card.classList.remove('border-red-200', 'border-green-200', 'ring-2', 'ring-blue-500', 'bg-red-50');
+                card.classList.add('bg-white');
+
+                // MOCK DATA GENERATION START
+                const delay = Math.random() * 2000 + 1000; // 1-3s delay
+                setTimeout(() => { card.querySelector('.progress-bar').style.width = "70%"; }, 100);
+
+                setTimeout(() => {
+                    // Finish Loading
+                    const data = generateMockDataForCounty(county, query);
+                    currentResults[county] = data; // Store for drill-down
+
+                    card.querySelector('.progress-bar').style.width = "100%";
+                    
+                    // Update Card UI based on results
+                    if (data.length > 0) {
+                        card.querySelector('.status-text').innerText = `${data.length} Records`;
+                        card.querySelector('.status-text').className = "text-2xl font-bold text-gray-900 mt-1 status-text";
+                        card.querySelector('.status-detail').innerText = "Potential matches found";
+                        card.querySelector('.status-indicator').className = "status-indicator w-3 h-3 rounded-full bg-red-500";
+                        // Visual cue for hits
+                        card.classList.add('border-red-200', 'bg-red-50');
+                        card.classList.remove('bg-white');
+                    } else {
+                        card.querySelector('.status-text').innerText = "No Records";
+                        card.querySelector('.status-text').className = "text-2xl font-bold text-gray-400 mt-1 status-text";
+                        card.querySelector('.status-detail').innerText = "Clear";
+                        card.querySelector('.status-indicator').className = "status-indicator w-3 h-3 rounded-full bg-green-500";
+                        card.classList.add('bg-white');
+                        card.classList.remove('bg-red-50', 'border-red-200');
+                    }
+                }, delay);
+                // MOCK DATA GENERATION END
+
+            });
+        }
+
+        function showDetails(county) {
+            const data = currentResults[county];
+            const section = document.getElementById('detail-section');
+            const tbody = document.getElementById('detail-tbody');
+            const empty = document.getElementById('detail-empty');
+            const title = document.getElementById('detail-title');
+
+            // Visual Selection on cards
+            ['clarendon', 'lee', 'sumter', 'williamsburg'].forEach(c => {
+                document.getElementById(`card-${c}`).classList.remove('ring-2', 'ring-blue-500');
+            });
+            document.getElementById(`card-${county.toLowerCase()}`).classList.add('ring-2', 'ring-blue-500');
+
+            section.classList.remove('hidden');
+            section.classList.add('flex');
+            title.innerText = `${county} County Details`;
+
+            tbody.innerHTML = '';
+            
+            if (!data || data.length === 0) {
+                empty.classList.remove('hidden');
+                document.querySelector('table').classList.add('hidden');
+            } else {
+                empty.classList.add('hidden');
+                document.querySelector('table').classList.remove('hidden');
+                
+                data.forEach(row => {
+                    let statusBadge = 'bg-gray-100 text-gray-600';
+                    if(row.status === 'Active' || row.status === 'Pending') statusBadge = 'bg-red-100 text-red-700';
+                    if(row.status === 'Disposed') statusBadge = 'bg-green-100 text-green-700';
+
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-blue-50 transition-colors";
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 font-medium text-gray-900">${row.caseNumber}</td>
+                        <td class="px-6 py-4 text-gray-500">${row.date}</td>
+                        <td class="px-6 py-4 font-semibold text-gray-700">${row.party}</td>
+                        <td class="px-6 py-4 text-gray-500">${row.type}</td>
+                        <td class="px-6 py-4"><span class="px-2 py-1 rounded-full text-xs font-bold ${statusBadge}">${row.status}</span></td>
+                        <td class="px-6 py-4 text-right">
+                             <a href="${row.url}" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium text-xs inline-flex items-center gap-1">
+                                Open <i class="ph-bold ph-arrow-square-out"></i>
+                            </a>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            // Scroll to details
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function closeDetails() {
+            document.getElementById('detail-section').classList.add('hidden');
+            ['clarendon', 'lee', 'sumter', 'williamsburg'].forEach(c => {
+                document.getElementById(`card-${c}`).classList.remove('ring-2', 'ring-blue-500');
+            });
+        }
+    </script>
+</body>
+</html>
