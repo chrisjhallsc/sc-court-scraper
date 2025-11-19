@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-export PYTHONPATH=$PYTHONPATH:/opt/render/project/src
-
-gunicorn server:app --bind 0.0.0.0:$PORT
