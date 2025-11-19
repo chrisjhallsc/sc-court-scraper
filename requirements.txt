@@ -1,5 +1,3 @@
 Flask
-beautifulsoup4
-gunicorn
-Flask-CORS
+flask-cors
 requests
